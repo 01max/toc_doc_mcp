@@ -1,0 +1,152 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "net/http"
+require "securerandom"
+require "shellwords"
+require "uri"
+
+ROOT = File.expand_path("..", __dir__)
+ENV_PATH = File.join(ROOT, ".env")
+SERVICE_NAME = "tocdoc-mcp"
+MCP_NAME = "tocdoc-local"
+CODEX_TOKEN_ENV = "TOCDOC_MCP_TOKEN"
+PORT = "8080"
+MCP_URL = "http://127.0.0.1:#{PORT}/mcp"
+HEALTH_URL = "http://127.0.0.1:#{PORT}/health"
+
+def log(message)
+  warn("[tocdoc-codex] #{message}")
+end
+
+def fail!(message)
+  abort("[tocdoc-codex] #{message}")
+end
+
+def confirm!(message)
+  warn("#{message} [y/N]")
+  answer = $stdin.gets&.strip&.downcase
+  return if %w[y yes].include?(answer)
+
+  fail!("aborted")
+end
+
+def run!(*command)
+  log("$ #{command.shelljoin}")
+
+  success = Dir.chdir(ROOT) { system(*command) }
+  fail!("command failed: #{command.shelljoin}") unless success
+end
+
+def render_env(existing_lines, values)
+  written = {}
+  lines = existing_lines.map do |line|
+    match = line.match(/\A([A-Za-z_][A-Za-z0-9_]*)=/)
+    next line unless match
+
+    key = match[1]
+    next line unless values.key?(key)
+
+    written[key] = true
+    "#{key}=#{values.fetch(key)}\n"
+  end
+
+  values.each do |key, value|
+    next if written[key]
+
+    lines << "\n" if lines.any? && !lines.last.end_with?("\n")
+    lines << "#{key}=#{value}\n"
+  end
+
+  lines.join
+end
+
+def write_env!(token)
+  values = {
+    "HOST" => "0.0.0.0",
+    "PORT" => PORT,
+    "MCP_AUTH_TOKEN" => token,
+    "MCP_HTTP_STATELESS" => "false"
+  }
+
+  if File.exist?(ENV_PATH)
+    confirm!("Update #{ENV_PATH} with a fresh local MCP token?")
+    existing_lines = File.readlines(ENV_PATH)
+  else
+    confirm!("Create #{ENV_PATH} with local Docker MCP settings?")
+    existing_lines = []
+  end
+
+  File.write(ENV_PATH, render_env(existing_lines, values))
+  File.chmod(0o600, ENV_PATH)
+  log("wrote #{ENV_PATH}")
+end
+
+def wait_for_health!
+  uri = URI(HEALTH_URL)
+  deadline = Time.now + 60
+  last_error = nil
+
+  while Time.now < deadline
+    begin
+      response = Net::HTTP.get_response(uri)
+      if response.is_a?(Net::HTTPSuccess)
+        log("Docker service is healthy at #{HEALTH_URL}")
+        return
+      end
+
+      last_error = "HTTP #{response.code}: #{response.body}"
+    rescue StandardError => e
+      last_error = "#{e.class}: #{e.message}"
+    end
+
+    sleep 1
+  end
+
+  fail!("Docker service did not become healthy at #{HEALTH_URL}: #{last_error}")
+end
+
+def mcp_registered?
+  Dir.chdir(ROOT) do
+    system("codex", "mcp", "get", MCP_NAME, out: File::NULL, err: File::NULL)
+  end
+end
+
+def ensure_codex_mcp!
+  if mcp_registered?
+    warn("[tocdoc-codex] warning: Codex MCP server #{MCP_NAME.inspect} already exists; leaving it unchanged.")
+    warn("[tocdoc-codex] warning: make sure it points to #{MCP_URL}.")
+    return
+  end
+
+  run!(
+    "codex",
+    "mcp",
+    "add",
+    MCP_NAME,
+    "--url",
+    MCP_URL,
+    "--bearer-token-env-var",
+    CODEX_TOKEN_ENV
+  )
+end
+
+def launch_codex!(token, args)
+  ENV[CODEX_TOKEN_ENV] = token
+  config_override = %(shell_environment_policy.set.#{CODEX_TOKEN_ENV}=#{token.dump})
+  command = ["codex", "-c", config_override, *args]
+
+  log("launching Codex")
+  Dir.chdir(ROOT) { exec(*command) }
+rescue SystemCallError => e
+  fail!("failed to launch Codex: #{e.message}")
+end
+
+token = SecureRandom.hex(32)
+log("generated fresh local MCP token")
+
+write_env!(token)
+run!("docker", "compose", "up", "--build", "--force-recreate", "-d", SERVICE_NAME)
+wait_for_health!
+ensure_codex_mcp!
+launch_codex!(token, ARGV)
