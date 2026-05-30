@@ -87,6 +87,46 @@ docker compose up --build
 
 The container runs the authenticated HTTP server by default. If you expose it through a tunnel or reverse proxy, target the service at `http://tocdoc-mcp:8080/mcp` inside the compose network or `http://127.0.0.1:8080/mcp` from the host.
 
+## Usage With Codex
+
+Start the Dockerized server locally first:
+
+```sh
+cp .env.example .env
+docker compose up --build
+```
+
+Use the same token from `.env` when registering the local HTTP MCP server with Codex:
+
+```sh
+export TOCDOC_MCP_TOKEN="use-the-same-token-as-MCP_AUTH_TOKEN"
+
+codex mcp add tocdoc-local \
+  --url http://127.0.0.1:8080/mcp \
+  --bearer-token-env-var TOCDOC_MCP_TOKEN
+```
+
+Codex must see `TOCDOC_MCP_TOKEN` when it starts. For a one-off CLI session:
+
+```sh
+codex -c 'shell_environment_policy.set.TOCDOC_MCP_TOKEN="use-the-same-token-as-MCP_AUTH_TOKEN"'
+```
+
+For repeated local testing, add the token to `~/.codex/config.toml`:
+
+```toml
+[shell_environment_policy.set]
+TOCDOC_MCP_TOKEN = "use-the-same-token-as-MCP_AUTH_TOKEN"
+```
+
+Then start a fresh Codex session and ask for a read-only search:
+
+```text
+what's the first dermatologist appointment available in bordeaux
+```
+
+Codex handles MCP initialization and session headers automatically. Raw `curl` calls may need an explicit `initialize` request and `Mcp-Session-Id` header unless `MCP_HTTP_STATELESS=true` is set.
+
 ## Smoke Testing
 
 For manual smoke testing, use a dynamic public-data flow instead of committed real-person fixtures:
