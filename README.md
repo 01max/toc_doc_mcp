@@ -8,7 +8,7 @@ Read-only MCP server for discovering public practitioner information and visible
 
 🔐 The current HTTP mode uses bearer-token authentication only, has no user model, no rate limiting, no abuse protection, no monitoring, and no production secret-management story. Requests may involve sensitive health-search context, and exploratory agent use can be noisy against the upstream API, so avoid exposing this server publicly.
 
-🕵️ This talks to a shadow public API through the `toc_doc` gem. Use it responsibly, keep request volume low, and treat upstream behavior as unstable.
+This talks to a shadow public API through the `toc_doc` gem. Use it responsibly, keep request volume low, and treat upstream behavior as unstable.
 
 ## Requirements
 
