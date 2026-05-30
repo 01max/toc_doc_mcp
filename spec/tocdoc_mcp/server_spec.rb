@@ -3,43 +3,8 @@
 require_relative "../spec_helper"
 
 RSpec.describe TocdocMcp::Server do
-  let(:gateway) { FakeGateway.new }
+  let(:gateway) { build(:fake_gateway) }
   let(:server) { described_class.build(gateway: gateway) }
-
-  class FakeGateway
-    attr_reader :calls
-
-    def initialize
-      @calls = []
-      @responses = {}
-    end
-
-    def respond_with(method_name, response)
-      @responses[method_name] = response
-    end
-
-    def search_practitioners(**args)
-      record(:search_practitioners, args)
-    end
-
-    def get_booking_context(**args)
-      record(:get_booking_context, args)
-    end
-
-    def search_availabilities(**args)
-      record(:search_availabilities, args)
-    end
-
-    private
-
-    def record(method_name, args)
-      @calls << [method_name, args]
-      response = @responses.fetch(method_name) { { ok: true, method: method_name, args: args } }
-      raise response if response.is_a?(Exception)
-
-      response
-    end
-  end
 
   def rpc(method, params = nil)
     request = {

@@ -4,7 +4,7 @@ Read-only MCP server for discovering public practitioner information and visible
 
 ## Requirements
 
-- Ruby 3.1 or newer
+- Ruby 3.3 or newer
 - Bundler
 
 ## Install

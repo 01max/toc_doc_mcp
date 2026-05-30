@@ -11,54 +11,8 @@ RSpec.describe TocdocMcp::Gateway do
     stub_const("TocDoc::Availability", class_double("TocDoc::Availability"))
   end
 
-  FakeProfile = Struct.new(:data, keyword_init: true) do
-    def to_h
-      data
-    end
-
-    def to_s
-      data["name_with_title"] || data["name"]
-    end
-
-    def practitioner?
-      true
-    end
-
-    def organization?
-      false
-    end
-  end
-
-  FakeBookingInfo = Struct.new(:payload, keyword_init: true) do
-    def to_h
-      payload
-    end
-  end
-
-  FakeAvailabilityCollection = Struct.new(:slot_values, keyword_init: true) do
-    def slots
-      slot_values
-    end
-
-    def total
-      slot_values.length
-    end
-
-    def next_slot
-      nil
-    end
-
-    def booking_url
-      "https://www.doctolib.fr/example/booking/motives"
-    end
-  end
-
   it "combines query and location as a search hint" do
-    profile = FakeProfile.new(data: {
-      "id" => 123,
-      "name_with_title" => "Dr Example",
-      "places" => [{ "city" => "Metz", "full_address" => "1 Rue Exemple, Metz" }]
-    })
+    profile = build(:toc_doc_profile)
     allow(TocDoc::Search).to receive(:where).and_return([profile])
 
     result = gateway.search_practitioners(query: "dentiste", location: "Metz")
@@ -77,14 +31,7 @@ RSpec.describe TocdocMcp::Gateway do
 
   it "normalizes booking context identifiers" do
     allow(TocDoc::BookingInfo).to receive(:find).and_return(
-      FakeBookingInfo.new(payload: {
-        "profile" => { "id" => 123, "name" => "Dr Example" },
-        "specialities" => [{ "id" => 1, "name" => "Dentiste" }],
-        "visit_motives" => [{ "id" => 2, "name" => "Consultation" }],
-        "agendas" => [{ "id" => 3, "practice_id" => "practice-4", "visit_motive_ids" => [2] }],
-        "places" => [{ "id" => "practice-4", "city" => "Metz" }],
-        "practitioners" => [{ "id" => 123, "name" => "Dr Example" }]
-      })
+      build(:toc_doc_booking_info)
     )
 
     result = gateway.get_booking_context(profile_ref: "profile-a")
@@ -97,7 +44,7 @@ RSpec.describe TocdocMcp::Gateway do
   it "normalizes availability slots" do
     slot = DateTime.parse("2026-06-01T09:00:00+02:00")
     allow(TocDoc::Availability).to receive(:where).and_return(
-      FakeAvailabilityCollection.new(slot_values: [slot])
+      build(:toc_doc_availability_collection, slot_values: [slot])
     )
 
     result = gateway.search_availabilities(
