@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 ruby ">= 3.1"
 
-gem "mcp", "~> 0.17"
+gem "mcp", "~> 0.8"
 gem "toc_doc", "~> 1.10"
 
 group :development, :test do
