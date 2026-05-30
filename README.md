@@ -2,6 +2,14 @@
 
 Read-only MCP server for discovering public practitioner information and visible appointment availability through the `toc_doc` Ruby gem.
 
+## Project Status
+
+⚠️ This is a local prototype, not a production-ready service. Run it locally for now.
+
+🔐 The current HTTP mode uses bearer-token authentication only, has no user model, no rate limiting, no abuse protection, no monitoring, and no production secret-management story. Requests may involve sensitive health-search context, and exploratory agent use can be noisy against the upstream API, so avoid exposing this server publicly.
+
+🕵️ This talks to a shadow public API through the `toc_doc` gem. Use it responsibly, keep request volume low, and treat upstream behavior as unstable.
+
 ## Requirements
 
 - Ruby 3.3 or newer
@@ -89,6 +97,33 @@ For manual smoke testing, use a dynamic public-data flow instead of committed re
 4. Use returned `visit_motive_id`, `agenda_ids`, and optional `practice_ids` values with `search_availabilities`.
 
 Availability can legitimately be empty.
+
+Example local Codex query:
+
+```text
+what's the first dermatologist appointment available in bordeaux
+```
+
+Example result from a manual smoke test:
+
+```text
+Earliest slot found around Bordeaux:
+
+Wednesday, June 3, 2026 at 16:00
+Dr Héloïse BARAILLER
+Centre de Dermatologie Bordeaux Mérignac, Mérignac 33700
+Appointment type: Consultation dépistage mélanome / patient à risque / suivi carcinologique
+
+Strictly Bordeaux city, using a more generic dermatology consultation:
+
+Wednesday, July 15, 2026 at 09:00
+Cabinet de dermatologie des docteurs Gey-Valiergue et Lalanne, Bordeaux 33000
+Appointment type: Consultation
+
+No visible available slots were found for "Première consultation de dermatologie" in the checked Bordeaux profiles.
+```
+
+Visible availability changes frequently, so treat example dates as historical smoke-test output rather than stable fixtures.
 
 ## Current Limitations
 
