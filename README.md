@@ -102,7 +102,21 @@ The container runs the authenticated HTTP server by default. If you expose it th
 
 ## Usage With Codex
 
-Start the Dockerized server locally first:
+Use the helper script for local Codex testing:
+
+```sh
+bin/tocdoc-codex-with-docker
+```
+
+The script generates a fresh local token, asks before creating or updating `.env`, builds and starts the Docker service, registers `tocdoc-local` with Codex if needed, warns when that MCP entry already exists, waits for `/health`, and then launches Codex with the token available to the MCP client. If any step fails, the script exits with an error.
+
+Pass extra Codex CLI arguments after the script name:
+
+```sh
+bin/tocdoc-codex-with-docker --model gpt-5.5
+```
+
+Manual setup is also possible. Start the Dockerized server locally first:
 
 ```sh
 cp .env.example .env
