@@ -2,6 +2,19 @@
 
 Read-only MCP server for discovering public practitioner information and visible appointment availability through the `toc_doc` Ruby gem.
 
+## Table of Contents
+
+- [Project Status](#project-status)
+- [Requirements](#requirements)
+- [Install](#install)
+- [Run Locally](#run-locally)
+- [Test](#test)
+- [Docker](#docker)
+- [Usage With Codex](#usage-with-codex)
+- [Smoke Testing](#smoke-testing)
+- [Current Limitations](#current-limitations)
+- [License](#license)
+
 ## Project Status
 
 ⚠️ This is a local prototype, not a production-ready service. Run it locally for now.
@@ -170,3 +183,7 @@ Visible availability changes frequently, so treat example dates as historical sm
 This bootstrap release does not implement OAuth, per-user tokens, Cloudflare Tunnel lifecycle management, rate limiting, persistent storage, or monitoring.
 
 The server never exposes booking, cancellation, login, account-management, slot reservation, or other mutating tools.
+
+## License
+
+This project is available under the [MIT License](LICENSE).
