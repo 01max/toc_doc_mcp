@@ -50,7 +50,7 @@ module TocdocMcp
           type: "object",
           required: ["profile_ref"],
           properties: {
-            profile_ref: { type: "string" },
+            profile_ref: { type: ["string", "integer"] },
             diagnostics: { type: "boolean" }
           },
           additionalProperties: false
@@ -68,7 +68,7 @@ module TocdocMcp
           type: "object",
           required: ["profile_ref", "visit_motive_id", "agenda_ids"],
           properties: {
-            profile_ref: { type: "string" },
+            profile_ref: { type: ["string", "integer"] },
             visit_motive_id: { type: ["string", "integer"] },
             agenda_ids: {
               oneOf: [

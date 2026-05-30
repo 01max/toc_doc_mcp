@@ -81,6 +81,20 @@ RSpec.describe TocdocMcp::Server do
     )
   end
 
+  it "accepts numeric profile references returned by search" do
+    gateway.respond_with(
+      :get_booking_context,
+      { profile_ref: "123", visit_motives: [], agendas: [] }
+    )
+
+    response = call_tool("get_booking_context", { profile_ref: 123 })
+
+    expect(response.dig(:result, :isError)).to be(false)
+    expect(gateway.calls).to include(
+      [:get_booking_context, { profile_ref: 123, diagnostics: false }]
+    )
+  end
+
   it "returns normalized structured content for availability search" do
     gateway.respond_with(
       :search_availabilities,
