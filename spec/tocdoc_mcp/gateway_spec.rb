@@ -20,7 +20,7 @@ RSpec.describe TocdocMcp::Gateway do
     expect(TocDoc::Search).to have_received(:where).with(query: "dentiste Metz", type: "profile")
     expect(result[:candidates]).to eq([
       {
-        profile_ref: 123,
+        profile_ref: "123",
         display_name: "Dr Example",
         kind: "practitioner",
         labels: [],

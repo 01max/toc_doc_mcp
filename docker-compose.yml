@@ -1,0 +1,24 @@
+services:
+  tocdoc-mcp:
+    build: .
+    image: tocdoc-mcp:latest
+    env_file:
+      - .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - ruby
+        - -rnet/http
+        - -ruri
+        - -e
+        - 'uri = URI("http://127.0.0.1:#{ENV.fetch("PORT", "8080")}/health"); exit(Net::HTTP.get_response(uri).is_a?(Net::HTTPSuccess) ? 0 : 1)'
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

@@ -7,7 +7,7 @@ module TocdocMcp
     def profile_candidate(profile)
       data = to_hash(profile)
       {
-        profile_ref: first_present(data, "slug", "id", "value"),
+        profile_ref: normalized_ref(data),
         display_name: display_name(profile, data),
         kind: profile_kind(profile, data),
         labels: compact_array(data["specialities"] || data["speciality"] || data["label"]),
@@ -56,7 +56,7 @@ module TocdocMcp
     def normalized_profile(data)
       data = to_hash(data)
       {
-        profile_ref: first_present(data, "slug", "id", "value"),
+        profile_ref: normalized_ref(data),
         display_name: first_present(data, "name_with_title", "name", "label"),
         kind: data["organization"] ? "organization" : "practitioner",
         location: location_summary(data),
@@ -147,6 +147,10 @@ module TocdocMcp
 
     def first_present(data, *keys)
       keys.lazy.map { |key| data[key] }.find { |value| present?(value) }
+    end
+
+    def normalized_ref(data)
+      first_present(data, "slug", "id", "value")&.to_s
     end
 
     def compact_array(value)

@@ -1,0 +1,10 @@
+.bundle
+.git
+.gitignore
+.ruby-version
+coverage
+log
+openspec
+spec
+tmp
+vendor/bundle

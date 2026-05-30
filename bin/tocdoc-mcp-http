@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../lib/tocdoc_mcp"
+
+config = TocdocMcp::Config.http_from_env
+ENV["RACK_ENV"] ||= "production"
+
+exec(
+  "bundle",
+  "exec",
+  "puma",
+  "--bind",
+  "tcp://#{config.host}:#{config.port}",
+  "config.ru"
+)
