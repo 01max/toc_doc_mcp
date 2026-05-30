@@ -5,14 +5,14 @@ Read-only MCP server for discovering public practitioner information and visible
 ## Table of Contents
 
 - [Project Status](#project-status)
+- [Current Limitations](#current-limitations)
 - [Requirements](#requirements)
 - [Install](#install)
 - [Run Locally](#run-locally)
-- [Test](#test)
 - [Docker](#docker)
 - [Usage With Codex](#usage-with-codex)
+- [Test](#test)
 - [Smoke Testing](#smoke-testing)
-- [Current Limitations](#current-limitations)
 - [License](#license)
 
 ## Project Status
@@ -22,6 +22,25 @@ Read-only MCP server for discovering public practitioner information and visible
 🔐 The current HTTP mode uses bearer-token authentication only, has no user model, no rate limiting, no abuse protection, no monitoring, and no production secret-management story. Requests may involve sensitive health-search context, and exploratory agent use can be noisy against the upstream API, so avoid exposing this server publicly.
 
 This talks to a shadow public API through the `toc_doc` gem. Use it responsibly, keep request volume low, and treat upstream behavior as unstable.
+
+## Current Limitations
+
+This bootstrap release does not implement OAuth, per-user tokens, Cloudflare Tunnel lifecycle management, rate limiting, persistent storage, or monitoring.
+
+The server never exposes booking, cancellation, login, account-management, slot reservation, or other mutating tools.
+
+`search_practitioners` is not a general practitioner directory search. The current `toc_doc` gem and available upstream endpoints behave more like autocomplete/profile lookup than like a structured search engine.
+
+In practice, the query should include at least a partial practitioner, organization, or profile name. Vague requests such as `médecin généraliste Bordeaux`, `diététicien Bordeaux`, or `3 généralistes in Mérignac` can return no results or irrelevant matches.
+
+`location` is only appended to the upstream search query as a hint. It is not a hard filter, radius search, coordinate search, postcode search, or city constraint.
+
+The reliable workflow is:
+
+1. Start from a known practitioner, organization, or profile name.
+2. Use `search_practitioners` to resolve the `profile_ref`.
+3. Use `get_booking_context` for motives, agendas, and practices.
+4. Use `search_availabilities` for visible slots.
 
 ## Requirements
 
@@ -75,14 +94,6 @@ The bootstrap tool catalog is intentionally read-only:
 - `search_practitioners`
 - `get_booking_context`
 - `search_availabilities`
-
-`location` on practitioner search is treated as an optional search hint, not as a guaranteed radius, coordinate, city, or postal-code filter.
-
-## Test
-
-```sh
-bundle exec rake
-```
 
 ## Docker
 
@@ -154,16 +165,22 @@ what's the first dermatologist appointment available in bordeaux
 
 Codex handles MCP initialization and session headers automatically. Raw `curl` calls may need an explicit `initialize` request and `Mcp-Session-Id` header unless `MCP_HTTP_STATELESS=true` is set.
 
+## Test
+
+```sh
+bundle exec rake
+```
+
 ## Smoke Testing
 
-For manual smoke testing, use a dynamic public-data flow instead of committed real-person fixtures:
+For manual smoke testing, use a dynamic public-data flow instead of committed real-person fixtures. Start with a known or partially known profile name whenever possible:
 
-1. Search with a broad query such as `dentiste Metz`, `medecin generaliste Metz`, or `dermatologue Metz`.
+1. Search with a practitioner, organization, or profile name.
 2. Pick a returned `profile_ref`.
 3. Call `get_booking_context` with that `profile_ref`.
 4. Use returned `visit_motive_id`, `agenda_ids`, and optional `practice_ids` values with `search_availabilities`.
 
-Availability can legitimately be empty.
+Broad specialty-and-city searches can legitimately return empty or irrelevant results. Availability can also legitimately be empty.
 
 Example local Codex query:
 
@@ -191,12 +208,6 @@ No visible available slots were found for "Première consultation de dermatologi
 ```
 
 Visible availability changes frequently, so treat example dates as historical smoke-test output rather than stable fixtures.
-
-## Current Limitations
-
-This bootstrap release does not implement OAuth, per-user tokens, Cloudflare Tunnel lifecycle management, rate limiting, persistent storage, or monitoring.
-
-The server never exposes booking, cancellation, login, account-management, slot reservation, or other mutating tools.
 
 ## License
 

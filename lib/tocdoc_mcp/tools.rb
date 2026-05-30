@@ -23,13 +23,19 @@ module TocdocMcp
     def register_search_practitioners(server, gateway)
       server.define_tool(
         name: "search_practitioners",
-        description: "Search public practitioner/profile candidates. Location is treated as an optional search hint.",
+        description: "Search public profile candidates by partial practitioner, organization, or profile name. Broad specialty-and-city discovery is not reliable with the upstream autocomplete endpoint; location is only an optional search hint, not a filter.",
         input_schema: {
           type: "object",
           required: ["query"],
           properties: {
-            query: { type: "string" },
-            location: { type: "string" },
+            query: {
+              type: "string",
+              description: "Partial practitioner, organization, or profile name. Vague specialty-only queries may return empty or irrelevant results."
+            },
+            location: {
+              type: "string",
+              description: "Optional search hint appended to the upstream query. This is not a reliable city, postcode, radius, or geographic filter."
+            },
             limit: { type: "integer", minimum: 1 },
             diagnostics: { type: "boolean" }
           },

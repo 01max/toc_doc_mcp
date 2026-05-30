@@ -49,6 +49,15 @@ RSpec.describe TocdocMcp::Server do
     )
   end
 
+  it "describes practitioner search as partial-name lookup rather than broad directory search" do
+    response = rpc("tools/list")
+
+    tool = response.dig(:result, :tools).find { |item| item[:name] == "search_practitioners" }
+    expect(tool[:description]).to include("partial practitioner")
+    expect(tool[:description]).to include("Broad specialty-and-city discovery is not reliable")
+    expect(tool.dig(:inputSchema, :properties, :location, :description)).to include("not a reliable city")
+  end
+
   it "returns normalized structured content for practitioner search" do
     gateway.respond_with(
       :search_practitioners,
