@@ -1,6 +1,6 @@
 # TocDoc MCP Server
 
-Read-only MCP server for discovering public practitioner information and visible appointment availability through the `toc_doc` Ruby gem.
+Read-only MCP server for discovering public practitioner information and visible appointment availability on Doctolib through the `toc_doc` Ruby gem.
 
 ## Table of Contents
 
