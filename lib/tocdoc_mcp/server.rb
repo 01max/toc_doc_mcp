@@ -4,13 +4,14 @@ module TocdocMcp
   module Server
     module_function
 
-    def build
-      MCP::Server.new(
+    def build(gateway: Gateway.new)
+      server = MCP::Server.new(
         name: "tocdoc_mcp",
-        title: "TocDoc MCP",
         version: TocdocMcp::VERSION,
         tools: []
       )
+
+      Tools.register(server, gateway: gateway)
     end
   end
 end
