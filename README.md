@@ -2,6 +2,10 @@
 
 Read-only MCP server for discovering public practitioner information and visible appointment availability on Doctolib through the `toc_doc` Ruby gem.
 
+## Disclaimer
+
+Using this software is not aligned with Doctolib's Terms of Service. This project is provided for research and entertainment purposes only. You are responsible for ensuring that any use complies with applicable laws, policies, and third-party terms.
+
 ## Table of Contents
 
 - [Project Status](#project-status)
