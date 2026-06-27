@@ -4,7 +4,7 @@ source "https://rubygems.org"
 
 ruby ">= 3.3"
 
-gem "mcp", "~> 0.20"
+gem "mcp", "~> 0.22"
 gem "puma", "~> 8.0"
 gem "rack", "~> 3.1"
 gem "toc_doc", "~> 1.10"
